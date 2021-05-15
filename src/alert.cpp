@@ -46,6 +46,7 @@ void CUnsignedAlert::SetNull()
     strReserved.clear();
 }
 
+
 std::string CUnsignedAlert::ToString() const
 {
     std::string strSetCancel;
