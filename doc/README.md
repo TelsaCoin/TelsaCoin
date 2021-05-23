@@ -2,7 +2,7 @@
 
 ## Setup
 
-[Dogecoin Core](http://dogecoin.com/) is the reference Dogecoin client and it builds the backbone of the network. However, it downloads and stores the entire history of Bitcoin transactions \(which is currently several GBs\); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
+[Dogecoin Core](https://telsacoin.io/) is the reference Dogecoin client and it builds the backbone of the network. However, it downloads and stores the entire history of Bitcoin transactions \(which is currently several GBs\); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
 
 ## Running
 
