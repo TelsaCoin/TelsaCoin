@@ -1,7 +1,7 @@
 # Table of contents
 
 * [TSLA Core \[DOGE, Ð\]](README.md)
-* [Dogecoin Core 0.14.2](doc/README.md)
+* [TSLA Coin Core 0.14.2](doc/README.md)
   * [release-notes](doc/release-notes.md)
   * [release-notes](doc/release-notes-1/README.md)
     * [release-notes-1.14.2](doc/release-notes-1/release-notes-1.14.2.md)
