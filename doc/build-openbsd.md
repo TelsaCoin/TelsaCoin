@@ -1,13 +1,12 @@
-OpenBSD build guide
-======================
-(updated for OpenBSD 6.0)
+# OpenBSD build guide
+
+\(updated for OpenBSD 6.0\)
 
 This guide describes how to build dogecoind and command-line utilities on OpenBSD.
 
 As OpenBSD is most common as a server OS, we will not bother with the GUI.
 
-Preparation
--------------
+## Preparation
 
 Run the following as root to install the base dependencies for building:
 
@@ -18,10 +17,9 @@ pkg_add automake # (select highest version, e.g. 1.15)
 pkg_add python # (select highest version, e.g. 3.5)
 ```
 
-The default C++ compiler that comes with OpenBSD 5.9 is g++ 4.2. This version is old (from 2007), and is not able to compile the current version of Dogecoin Core, primarily as it has no C++11 support, but even before there were issues. So here we will be installing a newer compiler.
+The default C++ compiler that comes with OpenBSD 5.9 is g++ 4.2. This version is old \(from 2007\), and is not able to compile the current version of Dogecoin Core, primarily as it has no C++11 support, but even before there were issues. So here we will be installing a newer compiler.
 
-GCC
--------
+## GCC
 
 You can install a newer version of gcc with:
 
@@ -35,13 +33,15 @@ This compiler will not overwrite the system compiler, it will be installed as `e
 
 Do not use `pkg_add boost`! The boost version installed thus is compiled using the `g++` compiler not `eg++`, which will result in a conflict between `/usr/local/lib/libestdc++.so.XX.0` and `/usr/lib/libstdc++.so.XX.0`, resulting in a test crash:
 
-    test_dogecoin:/usr/lib/libstdc++.so.57.0: /usr/local/lib/libestdc++.so.17.0 : WARNING: symbol(_ZN11__gnu_debug17_S_debug_me ssagesE) size mismatch, relink your program
-    ...
-    Segmentation fault (core dumped)
+```text
+test_dogecoin:/usr/lib/libstdc++.so.57.0: /usr/local/lib/libestdc++.so.17.0 : WARNING: symbol(_ZN11__gnu_debug17_S_debug_me ssagesE) size mismatch, relink your program
+...
+Segmentation fault (core dumped)
+```
 
 This makes it necessary to build boost, or at least the parts used by Dogecoin Core, manually:
 
-```
+```text
 # Pick some path to install boost to, here we create a directory within the dogecoin directory
 BITCOIN_ROOT=$(pwd)
 BOOST_PREFIX="${BITCOIN_ROOT}/boost"
@@ -70,8 +70,7 @@ config_opts="runtime-link=shared threadapi=pthread threading=multi link=static v
 
 BerkeleyDB is only necessary for the wallet functionality. To skip this, pass `--disable-wallet` to `./configure`.
 
-See "Berkeley DB" in [build_unix.md](build_unix.md) for instructions on how to build BerkeleyDB 4.8.
-You cannot use the BerkeleyDB library from ports, for the same reason as boost above (g++/libstd++ incompatibility).
+See "Berkeley DB" in [build\_unix.md](https://github.com/TelsaCoin/TelsaCoin/tree/db7abb962b5bfc7a23084bed38eeebc9083eb1b2/doc/build_unix.md) for instructions on how to build BerkeleyDB 4.8. You cannot use the BerkeleyDB library from ports, for the same reason as boost above \(g++/libstd++ incompatibility\).
 
 ```bash
 # Pick some path to install BDB to, here we create a directory within the dogecoin directory
@@ -96,31 +95,34 @@ make install # do NOT use -jX, this is broken
 
 The standard ulimit restrictions in OpenBSD are very strict:
 
-    data(kbytes)         1572864
+```text
+data(kbytes)         1572864
+```
 
-This is, unfortunately, no longer enough to compile some `.cpp` files in the project,
-at least with gcc 4.9.3 (see issue https://github.com/bitcoin/bitcoin/issues/6658).
-If your user is in the `staff` group the limit can be raised with:
+This is, unfortunately, no longer enough to compile some `.cpp` files in the project, at least with gcc 4.9.3 \(see issue [https://github.com/bitcoin/bitcoin/issues/6658](https://github.com/bitcoin/bitcoin/issues/6658)\). If your user is in the `staff` group the limit can be raised with:
 
-    ulimit -d 3000000
+```text
+ulimit -d 3000000
+```
 
-The change will only affect the current shell and processes spawned by it. To
-make the change system-wide, change `datasize-cur` and `datasize-max` in
-`/etc/login.conf`, and reboot.
+The change will only affect the current shell and processes spawned by it. To make the change system-wide, change `datasize-cur` and `datasize-max` in `/etc/login.conf`, and reboot.
 
 ### Building Dogecoin Core
 
 **Important**: use `gmake`, not `make`. The non-GNU `make` will exit with a horrible error.
 
 Preparation:
+
 ```bash
 export AUTOCONF_VERSION=2.69 # replace this with the autoconf version that you installed
 export AUTOMAKE_VERSION=1.15 # replace this with the automake version that you installed
 ./autogen.sh
 ```
+
 Make sure `BDB_PREFIX` and `BOOST_PREFIX` are set to the appropriate paths from the above steps.
 
 To configure with wallet:
+
 ```bash
 ./configure --with-gui=no --with-boost=$BOOST_PREFIX \
     CC=egcc CXX=eg++ CPP=ecpp \
@@ -128,28 +130,26 @@ To configure with wallet:
 ```
 
 To configure without wallet:
+
 ```bash
 ./configure --disable-wallet --with-gui=no --with-boost=$BOOST_PREFIX \
     CC=egcc CXX=eg++ CPP=ecpp
 ```
 
 Build and run the tests:
+
 ```bash
 gmake # can use -jX here for parallelism
 gmake check
 ```
 
-Clang (not currently working)
-------------------------------
+## Clang \(not currently working\)
 
 WARNING: This is outdated, needs to be updated for OpenBSD 6.0 and re-tried.
 
-Using a newer g++ results in linking the new code to a new libstdc++.
-Libraries built with the old g++, will still import the old library.
-This gives conflicts, necessitating rebuild of all C++ dependencies of the application.
+Using a newer g++ results in linking the new code to a new libstdc++. Libraries built with the old g++, will still import the old library. This gives conflicts, necessitating rebuild of all C++ dependencies of the application.
 
-With clang this can - at least theoretically - be avoided because it uses the
-base system's libstdc++.
+With clang this can - at least theoretically - be avoided because it uses the base system's libstdc++.
 
 ```bash
 pkg_add llvm boost
@@ -160,17 +160,18 @@ pkg_add llvm boost
 gmake
 ```
 
-However, this does not appear to work. Compilation succeeds, but link fails
-with many 'local symbol discarded' errors:
+However, this does not appear to work. Compilation succeeds, but link fails with many 'local symbol discarded' errors:
 
-    local symbol 150: discarded in section `.text._ZN10tinyformat6detail14FormatIterator6finishEv' from libbitcoin_util.a(libbitcoin_util_a-random.o)
-    local symbol 151: discarded in section `.text._ZN10tinyformat6detail14FormatIterator21streamStateFromFormatERSoRjPKcii' from libbitcoin_util.a(libbitcoin_util_a-random.o)
-    local symbol 152: discarded in section `.text._ZN10tinyformat6detail12convertToIntIA13_cLb0EE6invokeERA13_Kc' from libbitcoin_util.a(libbitcoin_util_a-random.o)
+```text
+local symbol 150: discarded in section `.text._ZN10tinyformat6detail14FormatIterator6finishEv' from libbitcoin_util.a(libbitcoin_util_a-random.o)
+local symbol 151: discarded in section `.text._ZN10tinyformat6detail14FormatIterator21streamStateFromFormatERSoRjPKcii' from libbitcoin_util.a(libbitcoin_util_a-random.o)
+local symbol 152: discarded in section `.text._ZN10tinyformat6detail12convertToIntIA13_cLb0EE6invokeERA13_Kc' from libbitcoin_util.a(libbitcoin_util_a-random.o)
+```
 
-According to similar reported errors this is a binutils (ld) issue in 2.15, the
-version installed by OpenBSD 5.7:
+According to similar reported errors this is a binutils \(ld\) issue in 2.15, the version installed by OpenBSD 5.7:
 
-- http://openbsd-archive.7691.n7.nabble.com/UPDATE-cppcheck-1-65-td248900.html
-- https://llvm.org/bugs/show_bug.cgi?id=9758
+* [http://openbsd-archive.7691.n7.nabble.com/UPDATE-cppcheck-1-65-td248900.html](http://openbsd-archive.7691.n7.nabble.com/UPDATE-cppcheck-1-65-td248900.html)
+* [https://llvm.org/bugs/show\_bug.cgi?id=9758](https://llvm.org/bugs/show_bug.cgi?id=9758)
 
 There is no known workaround for this.
+
