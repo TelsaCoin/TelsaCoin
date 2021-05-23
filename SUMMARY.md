@@ -101,7 +101,7 @@
   * [RPC Tools](share/rpcuser.md)
   * [certs](share/certs/README.md)
     * [Code-signing private key notes](share/certs/privatekeynotes.md)
-* [Building Dogecoin](install.md)
+* [Building TSLA Coin](install.md)
 * [README](depends/README.md)
   * [packages](depends/packages.md)
   * [description](depends/description.md)
